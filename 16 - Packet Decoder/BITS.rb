@@ -31,7 +31,6 @@ class Packet
 	end
 
 	def read_meta(input, position)
-		puts position
 		@version = read_bits(input, position, Version)
 		position >>= Version
 		$version_sum += @version
@@ -193,7 +192,7 @@ def packet(input, position, depth)
 	when Literal
 		packet = literal(input, position, packet)
 	else
-		puts ("\t" * depth) + packet.length_type.to_s
+#		puts ("\t" * depth) + packet.length_type.to_s
 		puts ("\t" * depth) + "{"
 		packet = operator(input, position, packet, depth)
 		puts ("\t" * depth) + "}"
