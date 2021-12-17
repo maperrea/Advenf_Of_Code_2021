@@ -25,9 +25,7 @@ class Packet
 	attr_accessor :length
 	attr_accessor :value
 
-	def initialize(type = 0, bits = 0)
-		@packet_type = type
-		@bits = bits
+	def initialize()
 	end
 
 	def read_meta(input, position)
@@ -35,6 +33,7 @@ class Packet
 		position >>= Version
 		$version_sum += @version
 		@packet_type = read_bits(input, position, Packet_type)
+#		puts ">>" + @packet_type.to_s
 		position >>= Packet_type
 		@bits = 6
 		return self
@@ -71,25 +70,24 @@ class Packet
 	end
 
 	def do_op(a, b)
-#		puts "[%d, %d] : %d" % [a.value, b.value, @packet_type]
 		case @packet_type
 		when Sum
-			return Packet.new(@packet_type, @bits).set_value(a.value + b.value)
+			return Packet.new.set_value(a.value + b.value)
 		when Product
-			return Packet.new(@packet_type, @bits).set_value(a.value * b.value)
+			return Packet.new.set_value(a.value * b.value)
 		when Minimum
-			return Packet.new(@packet_type, @bits).set_value(a.value > b.value ? b.value : a.value)
+			return Packet.new.set_value(a.value > b.value ? b.value : a.value)
 		when Maximum
-			return Packet.new(@packet_type, @bits).set_value(a.value > b.value ? a.value : b.value)
+			return Packet.new.set_value(a.value > b.value ? a.value : b.value)
 		when Literal
 			puts "Error: do_op on literal"
 			exit
 		when Greater_than
-			return Packet.new(@packet_type, @bits).set_value(a.value > b.value ? 1 : 0)
+			return Packet.new.set_value(a.value > b.value ? 1 : 0)
 		when Less_than
-			return Packet.new(@packet_type, @bits).set_value(a.value < b.value ? 1 : 0)
+			return Packet.new.set_value(a.value < b.value ? 1 : 0)
 		when Equal_to
-			return Packet.new(@packet_type, @bits).set_value(a.value == b.value ? 1 : 0)
+			return Packet.new.set_value(a.value == b.value ? 1 : 0)
 		end
 	end
 
@@ -98,18 +96,13 @@ end
 def print_packet(packet, depth)
 	if depth >= 1
 		padding = "\t" * depth
-#		puts ("\t" * (depth - 1)) + "{"
 	else
 		padding = ""
 	end
 	case packet.packet_type
 	when Literal
-#		puts padding + "Version: " + packet.version.to_s
-#		puts padding + "Type: Literal"
 		puts padding + packet.value.to_s
 	else
-#		puts padding + "Version: " + packet.version.to_s
-#		print padding + "Type: "
 		case packet.packet_type
 		when Sum
 			puts padding + "+" + " -> " + packet.value.to_s
@@ -126,11 +119,8 @@ def print_packet(packet, depth)
 		when Equal_to
 			puts padding + "==" + " -> " + packet.value.to_s
 		end
-#		puts padding + "Length type: " + packet.length_type.to_s
-#		puts padding + "Length: " + packet.length.to_s
 	end
 	if depth >= 1
-#		puts ("\t" * (depth - 1)) + "}"
 	end
 end
 
@@ -175,10 +165,11 @@ def operator(input, position, packet, depth)
 		return Packet.new(packet.packet_type, packet.bits).set_value(0)
 	end
 	result = sub_packets[0]
-	result.packet_type = packet.packet_type
 	(1...sub_packets.size).each do |i|
 		result = packet.do_op(result, sub_packets[i])
 	end
+	result.packet_type = packet.packet_type
+	result.bits = packet.bits
 	return result
 end
 
@@ -192,7 +183,6 @@ def packet(input, position, depth)
 	when Literal
 		packet = literal(input, position, packet)
 	else
-#		puts ("\t" * depth) + packet.length_type.to_s
 		puts ("\t" * depth) + "{"
 		packet = operator(input, position, packet, depth)
 		puts ("\t" * depth) + "}"
@@ -203,7 +193,7 @@ end
 
 #(12...19).each do |i|
 #	input = File.readlines("examples")[i].chomp
-	input = File.read("input").chomp
+	input = File.readlines("input")[0].chomp
 	@bits = input.size * 4
 	input = input.scanf("%x")[0]
 	
