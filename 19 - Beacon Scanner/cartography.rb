@@ -1,5 +1,5 @@
 require "scanf"
-input = File.readlines("input").map(&:chomp)
+input = File.readlines("example").map(&:chomp)
 
 class Beacon
 
@@ -60,6 +60,10 @@ class Scanner
 		@beacons << b
 	end
 
+	def remove_beacon(b)
+		@beacons.delete(b)
+	end
+
 end
 
 current_scanner = Scanner.new
@@ -100,14 +104,19 @@ end
 end
 		
 puts "beacons = %d" % [@beacon_count]
-
-doubles = 0.0
+i = 0
 @scanners.each do |s|
 	s.beacons.each do |b|
-		if !b.same_as.empty?
-			doubles += b.same_as.size / 2.0
+		b.same_as.each do |same|
+			i += 1
+			puts i
+			same.scanner.remove_beacon(same)
 		end
 	end
 end
 
-puts "doubles = %f" % [doubles]
+beacons = 0
+@scanners.each do |s|
+	beacons += s.beacons.size
+end
+puts beacons
